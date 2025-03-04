@@ -1060,7 +1060,19 @@ function ConRO.Rogue.Subtlety(_, timeShift, currentSpell, gcd, tChosen, pvpChose
 				end
 			end
 
-			if _Shadowstrike_RDY and _Energy >= 45 and _combat_stealth and ((ConRO_AutoButton:IsVisible() and _enemies_in_melee <= 3) or ConRO_SingleButton:IsVisible()) then
+			if _ShurikenStorm_RDY and _Energy >= 45 and ((ConRO_AutoButton:IsVisible() and ((_enemies_in_melee >= 3 and not _combat_stealth) or (_enemies_in_melee >= 7 and not _Premeditation_FORM))) or ConRO_AoEButton:IsVisible()) then
+				tinsert(ConRO.SuggestedSpells, _ShurikenStorm);
+				if _Premeditation_FORM or _ShadowBlades_BUFF then
+					_Combo = _Combo_Max;
+				else
+					_Combo = _Combo + _enemies_in_10yrds;
+				end
+				_Energy = _Energy - 45;
+				_Queue = _Queue + 1;
+				break;
+			end
+
+			if _Shadowstrike_RDY and _Energy >= 45 and _combat_stealth then
 				tinsert(ConRO.SuggestedSpells, _Shadowstrike);
 				if _Premeditation_FORM or _ShadowBlades_BUFF then
 					_Combo = _Combo_Max;
@@ -1072,19 +1084,7 @@ function ConRO.Rogue.Subtlety(_, timeShift, currentSpell, gcd, tChosen, pvpChose
 				break;
 			end
 
-			if _ShurikenStorm_RDY and _Energy >= 45 and _CleartheWitnesses_BUFF then
-				tinsert(ConRO.SuggestedSpells, _ShurikenStorm);
-				if _Premeditation_FORM or _ShadowBlades_BUFF then
-					_Combo = _Combo_Max;
-				else
-					_Combo = _Combo + _enemies_in_10yrds;
-				end
-				_Energy = _Energy - 45;
-				_Queue = _Queue + 1;
-				break;
-			end
-
-			if _Backstab_RDY and _Energy >= 40 and not _combat_stealth and ((ConRO_AutoButton:IsVisible() and _enemies_in_melee <= 1) or ConRO_SingleButton:IsVisible()) then
+			if _Backstab_RDY and _Energy >= 40 and not _combat_stealth then
 				tinsert(ConRO.SuggestedSpells, _Backstab);
 				if _Premeditation_FORM or _ShadowBlades_BUFF then
 					_Combo = _Combo_Max;
@@ -1092,18 +1092,6 @@ function ConRO.Rogue.Subtlety(_, timeShift, currentSpell, gcd, tChosen, pvpChose
 					_Combo = _Combo + 1;
 				end
 				_Energy = _Energy - 40;
-				_Queue = _Queue + 1;
-				break;
-			end
-
-			if _ShurikenStorm_RDY and _Energy >= 45 and ((ConRO_AutoButton:IsVisible() and _enemies_in_melee >= 3) or ConRO_AoEButton:IsVisible()) then
-				tinsert(ConRO.SuggestedSpells, _ShurikenStorm);
-				if _Premeditation_FORM or _ShadowBlades_BUFF then
-					_Combo = _Combo_Max;
-				else
-					_Combo = _Combo + _enemies_in_10yrds;
-				end
-				_Energy = _Energy - 45;
 				_Queue = _Queue + 1;
 				break;
 			end
