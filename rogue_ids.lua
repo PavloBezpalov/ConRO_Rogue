@@ -1414,6 +1414,7 @@ ids.subtlety = {
 		echoing_reprimand = 470671,
 		escalating_blade = 441786,
 		flagellation = 384631,
+		flawless_form = 441326,
 		instant_poison = 315584,
 		premeditation = 343173,
 		shadow_blades = 121471,

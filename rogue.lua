@@ -798,6 +798,7 @@ function ConRO.Rogue.Subtlety(_, timeShift, currentSpell, gcd, tChosen, pvpChose
 		local _DarkestNight_BUFF = ConRO:Aura(Buff.darkest_night, timeShift);
 	local _Flagellation, _Flagellation_RDY = ConRO:AbilityReady(Ability.flagellation, timeShift);
 		local _Flagellation_BUFF, _, _Flagellation_DUR = ConRO:Aura(Buff.flagellation, timeShift);
+		local _Flawless_FORM = ConRO:Form(Buff.flawless_form);
 	local _GoremawsBite, _GoremawsBite_RDY = ConRO:AbilityReady(Ability.goremaws_bite, timeShift);
 	local _Kick, _Kick_RDY = ConRO:AbilityReady(Ability.kick, timeShift);
 	local _KidneyShot, _KidneyShot_RDY = ConRO:AbilityReady(Ability.kidney_shot, timeShift);
@@ -924,7 +925,7 @@ function ConRO.Rogue.Subtlety(_, timeShift, currentSpell, gcd, tChosen, pvpChose
 				end
 			end
 
-			if _Eviscerate_RDY and _Combo >= _Combo_Max and _DarkestNight_BUFF then
+			if _Eviscerate_RDY and _Combo >= 7 and _DarkestNight_BUFF then
 				tinsert(ConRO.SuggestedSpells, _Eviscerate);
 				_SliceandDice_BUFF = true;
 				_Combo = 0;
@@ -1005,17 +1006,121 @@ function ConRO.Rogue.Subtlety(_, timeShift, currentSpell, gcd, tChosen, pvpChose
 				_Queue = _Queue + 1;
 				break;
 			end
+		
+			--During	Shadow Dance:
+			if _ShadowDance_BUFF then
+				--Use Finishing Moves when on 6 or more Combo Points with the following priority:
+				if _Combo >= 6 then
+					if _ColdBlood_RDY and _SecretTechnique_RDY and _Energy >= 30 and ConRO:FullMode(_ColdBlood) then
+						tinsert(ConRO.SuggestedSpells, _ColdBlood);
+						_ColdBlood_RDY = false;
+						_ColdBlood_BUFF = true;
+						_Queue = _Queue + 1;
+						break;
+					end
 
-			if _Combo >= (_Combo_Max - 1) then
-				if _ColdBlood_RDY and _SecretTechnique_RDY and _Energy >= 30 and (_ShadowDance_BUFF or _SymbolsofDeath_BUFF) and ConRO:FullMode(_ColdBlood) then
-					tinsert(ConRO.SuggestedSpells, _ColdBlood);
-					_ColdBlood_RDY = false;
-					_ColdBlood_BUFF = true;
+					--Use Secret Technique.
+					if _SecretTechnique_RDY and _Energy >= 30 and ConRO:FullMode(_SecretTechnique) then
+						tinsert(ConRO.SuggestedSpells, _SecretTechnique);
+						_SecretTechnique_RDY = false;
+						_Combo = 0;
+						_Energy = _Energy - 30;
+						_Queue = _Queue + 1;
+						break;
+					end
+			
+					if ConRO:HeroSpec(HeroSpec.trickster) then
+						--Use Black Powder on 7 or more targets.
+						if _BlackPowder_RDY and _Energy >= 35 and not ConRO_SingleButton:IsVisible() and _enemies_in_melee >= 7 then
+							tinsert(ConRO.SuggestedSpells, _BlackPowder);
+							_Combo = 0;
+							_Energy = _Energy - 35;
+							_Queue = _Queue + 1;
+							break;
+						end
+					else
+						--Use Black Powder with 2 or more targets.
+						if _BlackPowder_RDY and _Energy >= 35 and not ConRO_SingleButton:IsVisible() and _enemies_in_melee >= 2 then
+							tinsert(ConRO.SuggestedSpells, _BlackPowder);
+							_Combo = 0;
+							_Energy = _Energy - 35;
+							_Queue = _Queue + 1;
+							break;
+						end
+					end
+
+					--Use Eviscerate.
+					if _Eviscerate_RDY and _Energy >= 35 then
+						tinsert(ConRO.SuggestedSpells, _Eviscerate);
+						_Combo = 0;
+						_Energy = _Energy - 35;
+						_Queue = _Queue + 1;
+						break;
+					end
+				end
+		
+				--Use Shadowstrike with Premeditation up.
+				if _Shadowstrike_RDY and _Energy >= 45 and Premeditation_FORM then
+					tinsert(ConRO.SuggestedSpells, _Shadowstrike);
+					if _Premeditation_FORM or _ShadowBlades_BUFF then
+						_Combo = _Combo_Max;
+					else
+						_Combo = _Combo + 2;
+					end
+					_Energy = _Energy - 45;
 					_Queue = _Queue + 1;
 					break;
 				end
-
-				if _SecretTechnique_RDY and _Energy >= 30 and (_ShadowDance_BUFF or _SymbolsofDeath_BUFF) and ConRO:FullMode(_SecretTechnique) then
+		
+				--Use Combo Point builder with the following priority:
+				if ConRO:HeroSpec(HeroSpec.trickster) then
+					--Use Shuriken Storm on 7 or more targets once for Danse Macabre.
+					if _ShurikenStorm_RDY and _Energy >= 45 and not ConRO_SingleButton:IsVisible() and _enemies_in_melee >= 7 then
+						tinsert(ConRO.SuggestedSpells, _ShurikenStorm);
+						if _Premeditation_FORM or _ShadowBlades_BUFF then
+							_Combo = _Combo_Max;
+						else
+							_Combo = _Combo + _enemies_in_10yrds;
+						end
+						_Energy = _Energy - 45;
+						_Queue = _Queue + 1;
+						break;
+					end
+				else
+					--Use Shuriken Storm with 5 or more targets.
+					if _ShurikenStorm_RDY and _Energy >= 45 and not ConRO_SingleButton:IsVisible() and _enemies_in_melee >= 5 then
+						tinsert(ConRO.SuggestedSpells, _ShurikenStorm);
+						if _Premeditation_FORM or _ShadowBlades_BUFF then
+							_Combo = _Combo_Max;
+						else
+							_Combo = _Combo + _enemies_in_10yrds;
+						end
+						_Energy = _Energy - 45;
+						_Queue = _Queue + 1;
+						break;
+					end
+				end
+		
+				--Use Shadowstrike.
+				if _Shadowstrike_RDY and _Energy >= 45 then
+					tinsert(ConRO.SuggestedSpells, _Shadowstrike);
+					if _Premeditation_FORM or _ShadowBlades_BUFF then
+						_Combo = _Combo_Max;
+					else
+						_Combo = _Combo + 2;
+					end
+					_Energy = _Energy - 45;
+					_Queue = _Queue + 1;
+					break;
+				end
+			end
+		
+			--Outside of Shadow Dance
+			if _Combo >= 6 then
+				--Use Finishing Moves when on 6 or more Combo Points with the following priority:
+		
+				--Use Secret Technique during Symbols of Death.
+				if _SecretTechnique_RDY and _Energy >= 30 and _SymbolsofDeath_BUFF and ConRO:FullMode(_SecretTechnique) then
 					tinsert(ConRO.SuggestedSpells, _SecretTechnique);
 					_SecretTechnique_RDY = false;
 					_Combo = 0;
@@ -1023,8 +1128,9 @@ function ConRO.Rogue.Subtlety(_, timeShift, currentSpell, gcd, tChosen, pvpChose
 					_Queue = _Queue + 1;
 					break;
 				end
-
-				if _Eviscerate_RDY and _Energy >= 35 and not _SliceandDice_BUFF and not _ShadowDance_BUFF then
+			
+				--Use Eviscerate to apply Slice and Dice if not up.
+				if _Eviscerate_RDY and _Energy >= 35 and not _SliceandDice_BUFF then
 					tinsert(ConRO.SuggestedSpells, _Eviscerate);
 					_SliceandDice_BUFF = true;
 					_Combo = 0;
@@ -1032,8 +1138,9 @@ function ConRO.Rogue.Subtlety(_, timeShift, currentSpell, gcd, tChosen, pvpChose
 					_Queue = _Queue + 1;
 					break;
 				end
-
-				if _Rupture_RDY and _Energy >= 25 and (not _Rupture_DEBUFF or _Rupture_DUR < 9) and not _ShadowDance_BUFF then
+			
+				--Use Rupture if not up or has less than 9 seconds remaining.
+				if _Rupture_RDY and _Energy >= 25 and (not _Rupture_DEBUFF or _Rupture_DUR < 9) then
 					tinsert(ConRO.SuggestedSpells, _Rupture);
 					_Rupture_DEBUFF = true;
 					_Rupture_DUR = 32;
@@ -1042,49 +1149,69 @@ function ConRO.Rogue.Subtlety(_, timeShift, currentSpell, gcd, tChosen, pvpChose
 					_Queue = _Queue + 1;
 					break;
 				end
-
-				if _BlackPowder_RDY and _Energy >= 35 and ((ConRO_AutoButton:IsVisible() and _enemies_in_melee >= 7) or ConRO_AoEButton:IsVisible()) then
-					tinsert(ConRO.SuggestedSpells, _BlackPowder);
-					_Combo = 0;
-					_Energy = _Energy - 35;
-					_Queue = _Queue + 1;
-					break;
+			
+				if ConRO:HeroSpec(HeroSpec.trickster) then
+					--Use Black Powder only if Flawless Form is NOT up or with 7 or more targets.
+					if _BlackPowder_RDY and _Energy >= 35 and not _Flawless_FORM and not ConRO_SingleButton:IsVisible() and _enemies_in_melee >= 7 then
+						tinsert(ConRO.SuggestedSpells, _BlackPowder);
+						_Combo = 0;
+						_Energy = _Energy - 35;
+						_Queue = _Queue + 1;
+						break;
+					end
+				else
+					--Use Black Powder with 2 or more targets.
+					if _BlackPowder_RDY and _Energy >= 35 and not ConRO_SingleButton:IsVisible() and _enemies_in_melee >= 2 then
+						tinsert(ConRO.SuggestedSpells, _BlackPowder);
+						_Combo = 0;
+						_Energy = _Energy - 35;
+						_Queue = _Queue + 1;
+						break;
+					end
 				end
-
+			
+				--Use Eviscerate.
 				if _Eviscerate_RDY and _Energy >= 35 then
 					tinsert(ConRO.SuggestedSpells, _Eviscerate);
+					_SliceandDice_BUFF = true;
 					_Combo = 0;
 					_Energy = _Energy - 35;
 					_Queue = _Queue + 1;
 					break;
 				end
 			end
-
-			if _ShurikenStorm_RDY and _Energy >= 45 and ((ConRO_AutoButton:IsVisible() and ((_enemies_in_melee >= 3 and not _combat_stealth) or (_enemies_in_melee >= 7 and not _Premeditation_FORM))) or ConRO_AoEButton:IsVisible()) then
-				tinsert(ConRO.SuggestedSpells, _ShurikenStorm);
-				if _Premeditation_FORM or _ShadowBlades_BUFF then
-					_Combo = _Combo_Max;
-				else
-					_Combo = _Combo + _enemies_in_10yrds;
+		
+			--Use Combo Point builder with the following priority:
+			if ConRO:HeroSpec(HeroSpec.trickster) then
+				--Use Shuriken Storm on 3 or more targets with Flawless Form up.
+				if _ShurikenStorm_RDY and _Energy >= 45 and _Flawless_FORM and not ConRO_SingleButton:IsVisible() and _enemies_in_melee >= 3 then
+					tinsert(ConRO.SuggestedSpells, _ShurikenStorm);
+					if _Premeditation_FORM or _ShadowBlades_BUFF then
+						_Combo = _Combo_Max;
+					else
+						_Combo = _Combo + _enemies_in_10yrds;
+					end
+					_Energy = _Energy - 45;
+					_Queue = _Queue + 1;
+					break;
 				end
-				_Energy = _Energy - 45;
-				_Queue = _Queue + 1;
-				break;
-			end
-
-			if _Shadowstrike_RDY and _Energy >= 45 and _combat_stealth then
-				tinsert(ConRO.SuggestedSpells, _Shadowstrike);
-				if _Premeditation_FORM or _ShadowBlades_BUFF then
-					_Combo = _Combo_Max;
-				else
-					_Combo = _Combo + 2;
+			else
+				--Use Shuriken Storm with 2 or more targets or Clear the Witnesses up.
+				if _ShurikenStorm_RDY and _Energy >= 45 and _Flawless_FORM and not ConRO_SingleButton:IsVisible() and (_enemies_in_melee >= 2 or _CleartheWitnesses_BUFF) then
+					tinsert(ConRO.SuggestedSpells, _ShurikenStorm);
+					if _Premeditation_FORM or _ShadowBlades_BUFF then
+						_Combo = _Combo_Max;
+					else
+						_Combo = _Combo + _enemies_in_10yrds;
+					end
+					_Energy = _Energy - 45;
+					_Queue = _Queue + 1;
+					break;
 				end
-				_Energy = _Energy - 45;
-				_Queue = _Queue + 1;
-				break;
 			end
-
-			if _Backstab_RDY and _Energy >= 40 and not _combat_stealth then
+		
+			--Use Backstab.
+			if _Backstab_RDY and _Energy >= 45 then
 				tinsert(ConRO.SuggestedSpells, _Backstab);
 				if _Premeditation_FORM or _ShadowBlades_BUFF then
 					_Combo = _Combo_Max;
